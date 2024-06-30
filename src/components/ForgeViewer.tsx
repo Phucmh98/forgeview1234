@@ -1,94 +1,169 @@
 'use client'
 
-import useForgeStore from '@/redux/store';
-import { forgeViewer, resizeViewer } from '@/utils/forgeviewaction';
-import React, { useEffect, useRef } from 'react';
-
+import React, { useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
+import * as THREE from 'three';
 interface ForgeViewerProps {
     urn: string;
     token: string;
     id: string;
-    action: string
+
 }
 
-let viewerLoc: { [key: string]: any } = {};
 
+const ForgeViewer = forwardRef((props: ForgeViewerProps, ref) => {
+    const { urn, token, id } = props;
+    const viewerRef = useRef<any>(null);
 
-const ForgeViewer: React.FC<ForgeViewerProps> = ({ urn, token, id, action }) => {
-
-    // let viewerLoc:any
     useEffect(() => {
-        if (action === 'a123' || action === '') {
 
-            let viewer: any
-            const options = {
-                env: 'AutodeskProduction',
-                getAccessToken: (onSuccess: (accessToken: string, expire: number) => void) => {
-                    onSuccess(token, 3600); // Adjust the token expiry time as needed
-                }
-            };
+        const options = {
+            env: 'AutodeskProduction',
+            getAccessToken: (onSuccess: (accessToken: string, expire: number) => void) => {
+                onSuccess(token, 3600);
+            }
+        };
 
-            const initializeViewer = async () => {
-                try {
-                    await new Promise<void>((resolve, reject) => {
-                        //@ts-ignore
-                        Autodesk.Viewing.Initializer(options, () => {
-                            const viewerElement = document.getElementById(id);
-                            if (viewerElement) {
-                                //@ts-ignore
-                                const viewerAuto = new Autodesk.Viewing.GuiViewer3D(viewerElement);
-                                viewer = viewerAuto;
-                                viewer.start();
-                                //@ts-ignore
-                                Autodesk.Viewing.Document.load(`urn:${urn}`, (doc: any) => {
-                                    viewerLoc[id] = doc
-                                    const defaultModel = doc.getRoot().getDefaultGeometry();
-                                    viewer.loadDocumentNode(doc, defaultModel);
+        const initializeViewer = async () => {
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    //@ts-ignore
+                    Autodesk.Viewing.Initializer(options, () => {
+                        const viewerElement = document.getElementById(id);
+                        if (viewerElement) {
+                            //@ts-ignore
+                            const viewer = new Autodesk.Viewing.GuiViewer3D(viewerElement);
+                            viewerRef.current = viewer; // Store the viewer instance in the ref
+                            viewer.start();
+                            //@ts-ignore
+                            Autodesk.Viewing.Document.load(`urn:${urn}`, (doc: any) => {
 
-                                    resolve(); // Resolve the promise when viewer initialization is complete
-                                }, (errorCode: any, errorMsg: any) => {
-                                    console.error(errorCode, errorMsg);
-                                    reject(errorMsg); // Reject the promise on error
-                                });
-                            } else {
-                                console.error(`Element with id '${id}' not found.`);
-                                reject(`Element with id '${id}' not found.`);
-                            }
-                        });
+                                const defaultModel = doc.getRoot().getDefaultGeometry();
+                                viewer.loadDocumentNode(doc, defaultModel);
+                                resolve();
+                            }, (errorCode: any, errorMsg: any) => {
+                                console.error(errorCode, errorMsg);
+                                reject(errorMsg);
+                            });
+                        } else {
+                            console.error(`Element with id '${id}' not found.`);
+                            reject(`Element with id '${id}' not found.`);
+                        }
                     });
+                });
+            } catch (error) {
+                console.error("Error initializing viewer:", error);
+            }
+        };
+        initializeViewer();
 
-                } catch (error) {
-                    console.error("Error initializing viewer:", error);
-                }
-            };
+    }, [urn, token, id]);
+
+    useImperativeHandle(ref, () => ({
+        resize: resizeViewer,
+        zoomTo: zoomToViewer,
+        isolate: isolateViewer,
+        show: showViewer,
+        showAll: showAllViewer,
+        hideAll: hideAllViewer,
+        selectObjs: selectsViewer,
+        isLoadDone: isLoadDoneViewer,
+        setThemingColor: setThemingColorViewer,
+        clearThemingColors: clearThemingColorsViewer
+    }));
 
 
-            initializeViewer();
+    //Resize Forge
+    const resizeViewer = () => {
+        if (viewerRef.current) {
+            viewerRef.current.resize();
+            console.log(`Resize ${id} called`);
         }
+    };
+    //ZoomTo Forge
+    const zoomToViewer = (objIds: number[]) => {
+        if (viewerRef.current) {
+            viewerRef.current.fitToView(objIds, viewerRef.current.model)
+        }
+    }
+    //Isolate Forge
+    const isolateViewer = (objIds: number[]) => {
+        if (viewerRef.current) {
+            viewerRef.current.isolate(objIds, viewerRef.current.model)
+            viewerRef.current.impl.visibilityManager.setNodeOff(objIds, true);
+        }
+    }
 
-        console.log('chạy lạis')
-    }, [urn, token, id, action]);
+    //Show Forge
+    const showViewer = (objIds: number[]) => {
+        if (viewerRef.current) {
+            viewerRef.current.isolate(objIds, viewerRef.current.model)
+        }
+    }
+
+    //Show All Forge
+    const showAllViewer = () => {
+        if (viewerRef.current) {
+            viewerRef.current.showAll()
+        }
+    }
 
 
+    //Hilde All Forge
+    const hideAllViewer = () => {
+        if (viewerRef.current) {
+            viewerRef.current.hideAll()
+        }
+    }
 
+    //Selects Forge
+    const selectsViewer = (objIds: number[]) => {
+        if (viewerRef.current) {
+            viewerRef.current.select(objIds)
 
-    const resize = () => {
+        }
+    }
 
-        // viewerLoc[id].resize();
+    //LoadDone Forge
+    const isLoadDoneViewer = () => {
+        if (viewerRef.current) {
+            console.log(`viewerRef  ${id}`, viewerRef.current.isLoadDone())
+            return viewerRef.current.isLoadDone();
+        }
+        return false;
+    }
 
-        console.log('11111111111')
+    //SetThemingColor Forge
+    // const setThemingColorViewer = (objIds: number[], color: THREE.Vector4, children: boolean) => {
+    //     if (viewerRef.current) {
+    //         objIds.forEach(objId => {
+    //             var green = new THREE.Vector4(0, 0.5, 0, 0.5);
+    //             viewerRef.current.setThemingColor(objId, green);
+    //         });
+    //     }
+    // };
+    const setThemingColorViewer = (objs: number[], red: any, green: any, blue: any, alpha: any, isSetForChildren: boolean) => {
+
+        for (let i = 0; i < objs.length; i++) {
+            var color = new THREE.Color(red, green, blue);
+            console.log('color', color)
+            viewerRef.current.setThemingColor(objs[i], color, viewerRef.current.model, isSetForChildren);
+        }
+    }
+
+    //Clear Theming Colors
+    const clearThemingColorsViewer = () => {
+        if (viewerRef.current) {
+            viewerRef.current.clearThemingColors(viewerRef.current.model)
+        }
     }
 
     return (
-
         <div className='w-full h-full relative'>
             <div className='w-full h-full absolute z-0'>
-                <div className='' id={id}></div>
+                <div id={id}></div>
             </div>
         </div>
-
-
     );
-};
+});
 
 export default ForgeViewer;

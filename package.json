@@ -12,9 +12,11 @@
     "@syncfusion/ej2": "^26.1.39",
     "@syncfusion/ej2-react-grids": "^26.1.39",
     "@syncfusion/ej2-react-layouts": "^26.1.38",
+    "@types/three": "^0.166.0",
     "next": "14.2.4",
     "react": "^18",
     "react-dom": "^18",
+    "three": "^0.166.0",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
