@@ -32,8 +32,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/components/forgeviewaction.js",
-    "src/**/*"
+    "src/components/forgeView/forgeviewaction.js"
+   
   ],
   "exclude": [
     "node_modules"

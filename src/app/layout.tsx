@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { registerLicense } from '@syncfusion/ej2-base';
+
+// Thêm License Key của bạn vào đây
+registerLicense('ORg4AjUWIQA/Gnt2U1hhQlJBfV5AQmBIYVp/TGpJfl96cVxMZVVBJAtUQF1hTX5VdEBhWHpecnNVRmNf');
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,15 +20,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-     
+
       <head>
         <link
           rel="stylesheet"
           href="https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css"
           type="text/css"
         />
-         <link href="https://cdn.syncfusion.com/ej2/22.1.34/tailwind.css" rel="stylesheet"/>
-            <style>{`
+        <link href="https://cdn.syncfusion.com/ej2/22.1.34/tailwind.css" rel="stylesheet" />
+        <style>{`
           html, body {
             height: 100%;
             margin: 0;
@@ -35,10 +39,10 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>{children}
 
-      <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+        <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
       </body>
 
-   
+
 
     </html>
   );

@@ -1,17 +1,15 @@
 'use client'
 
 import React, { useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
-import * as THREE from 'three';
+// import * as THREE from 'three';
 interface ForgeViewerProps {
     urn: string;
     token: string;
     id: string;
-
+    onSelection: (data: any) => void;
 }
-
-
 const ForgeViewer = forwardRef((props: ForgeViewerProps, ref) => {
-    const { urn, token, id } = props;
+    const { urn, token, id, onSelection } = props;
     const viewerRef = useRef<any>(null);
 
     useEffect(() => {
@@ -34,6 +32,8 @@ const ForgeViewer = forwardRef((props: ForgeViewerProps, ref) => {
                             const viewer = new Autodesk.Viewing.GuiViewer3D(viewerElement);
                             viewerRef.current = viewer; // Store the viewer instance in the ref
                             viewer.start();
+                            //@ts-ignore
+                            viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, onSelectionViewer)
                             //@ts-ignore
                             Autodesk.Viewing.Document.load(`urn:${urn}`, (doc: any) => {
 
@@ -68,10 +68,17 @@ const ForgeViewer = forwardRef((props: ForgeViewerProps, ref) => {
         selectObjs: selectsViewer,
         isLoadDone: isLoadDoneViewer,
         setThemingColor: setThemingColorViewer,
-        clearThemingColors: clearThemingColorsViewer
+        clearThemingColors: clearThemingColorsViewer,
+
     }));
 
 
+    const onSelectionViewer = (data: any) => {
+        
+        if (data.dbIdArray.length > 0) {
+            onSelection(data)
+        }
+    }
     //Resize Forge
     const resizeViewer = () => {
         if (viewerRef.current) {
@@ -132,21 +139,14 @@ const ForgeViewer = forwardRef((props: ForgeViewerProps, ref) => {
         return false;
     }
 
-    //SetThemingColor Forge
-    // const setThemingColorViewer = (objIds: number[], color: THREE.Vector4, children: boolean) => {
-    //     if (viewerRef.current) {
-    //         objIds.forEach(objId => {
-    //             var green = new THREE.Vector4(0, 0.5, 0, 0.5);
-    //             viewerRef.current.setThemingColor(objId, green);
-    //         });
-    //     }
-    // };
-    const setThemingColorViewer = (objs: number[], red: any, green: any, blue: any, alpha: any, isSetForChildren: boolean) => {
 
+
+
+    const setThemingColorViewer = (objs: number[], red: number, green: number, blue: number, alpha: number, isSetForChildren: boolean) => {
         for (let i = 0; i < objs.length; i++) {
-            var color = new THREE.Color(red, green, blue);
-            console.log('color', color)
-            viewerRef.current.setThemingColor(objs[i], color, viewerRef.current.model, isSetForChildren);
+            // @ts-ignore
+            const color = new THREE.Vector4(red, green, blue, alpha);
+            viewerRef.current.setThemingColor(objs[i], color, null, isSetForChildren);
         }
     }
 
@@ -166,4 +166,4 @@ const ForgeViewer = forwardRef((props: ForgeViewerProps, ref) => {
     );
 });
 
-export default ForgeViewer;
+export default React.memo(ForgeViewer);
